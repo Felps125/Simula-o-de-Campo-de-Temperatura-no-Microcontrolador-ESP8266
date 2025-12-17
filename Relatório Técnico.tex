@@ -1,0 +1,170 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage[left=2cm,top=3cm,right=2cm,bottom=2cm]
+{geometry}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\title{\textbf{Desenvolvimento de Código para Determinação de Distribuição de Temperatura no Microcontrolador ESP8266} \\[0.5cm] 
+\large Relatório Técnico Integrado}
+\author{Autor: Felipe Antunes Alves}
+\usepackage[brazil]{babel}  % Para português do Brasil
+\usepackage{float}
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+\subsection{Objetivos}
+\subsection{Objetivo Geral}
+\hspace*{0.5cm}{ \large Desenvolver código computacional autoral com o objetivo de resolver um problema real de engenharia associado a disciplina de Transferência de Calor utilizando alguns dos métodos numéricos aprendidos no curso. } 
+\subsection{Objetivo Específico}
+\hspace*{0.5cm}{ \large Desenvolver código computacional que tenha como resultado a distribuição de temperatura ao longo de um microcontrolador(ESP8266) visando ter uma base para proposição de um conjunto aletado em trabalhos futuros. } 
+\subsection{Justificativa}
+\hspace*{0.5cm}{ \large O Cálculo Numérico aplicado, tema geral de estudo deste presente curso, auxilia no desenvolvimento de soluções chamadas numéricas, que visam dar vazão a resolução de problemas reais de engenharia, nas quais não podem ser determinados por métodos analíticos tradicionais. Nesse Contexto, a tese motivadora do presente projeto visa aplicar os conceitos aprendidos na área de Transferência de Calor voltada a determinação de distribuição de temperatura presente em microcontroladores, utilizando como estudo de caso, o modelo ESP8266. }
+\\
+\hspace*{0.5cm}{ \large A premissa desse estudo partiu da problemática presente em um contexto de projeto de automação residencial desenvolvido ao longo da graduação, na forma de Iniciação Científica, constituido de sensores para avaliação de diferentes propriedades físicas como vazão, volume, temperatura, além de parâmetros de qualidade da água, visando realizar um mapeamento hídrico, bem como geração de alertas de picos de consumo com auxílio de Inteligencia Artificial (IA) e dentre outras coisas, resultando em um aplicativo móvel para controle e Análise de Dados, desenvolvido também pelo estudante Caio Frizzera Rossoni. Dessa maneira, durante o testes de prototipagem, foi notado um aumento de temperatura de operação por parte do Módulo ESP8266 em que é armazenado e enviado cada uma dessas variáveis para tratamento em um banco de dados. }
+\\
+\hspace*{0.5cm}{ \large Diante disso, percebeu-se  a necessidade de avaliação da distribuição de temperatura presente no módulo de forma mais precisa, com intuito de fazer uma análise eficaz na proposição de um conjunto ou sistema aletado para melhoria na troca térmica, por meio dessas surperficies estendidas, ocasionando resfriamento e aumento de vida útil do microcontrolador. Por fim, vale salientar que o enfâse desse desenvolvimento está vinculado a proposição de um código que simule a distribuição de temperatura ao longo do módulo, servindo como base futura de estudo para construção do sistema aletado em questão, servindo e auxiliando de forma fundamental ao desenvolvimento do trabalho de conclusão de curso de engenharia mecânica.  }
+
+\section{Metodologia}
+\hspace*{0.5cm}{ \large A metodologia usada consistiu nas seguintes etapas:  }
+\\
+\hspace*{1 cm}{ \large 
+ \textbf{1.Definição da Equação Governante} para realização de uma análise dianóstica com o objetivo de identficar a equação base que vai regir todas as outras etapas seguintes;
+ }
+\\
+\hspace*{1 cm}{ \large 
+\textbf{2. Determinação das Condições de Contorno} adequadas para a problemática apresentada aliada a avaliação das propriedades físicas do material;
+ }
+\\
+\hspace*{1 cm}{ \large 
+\textbf{3. Identificação dos Método Numéricos} base e complementares  para resolução da Equação Governante;
+ }
+\\
+\hspace*{1 cm}{ \large 
+\textbf{4. Implementação do Método Numérico} por meio de desenvolvimento de um código autoral em C++;
+ }
+\\
+\hspace*{1 cm}{ \large 
+\textbf{5. Validação de Método} a partir de avaliação geral de custo computacional bem como análises para respectivos ajustes finos para adequação do código desenvolvido;
+ }
+\\
+\hspace*{0.5cm}{ \large Além do mais, vale salientar que em termos de referencial teórico de estudo, além da apostila e lousa disponibilizadas ao longo do curso, também foi utilizado o Livro do\textbf{ Incropera de Transferência de Calor e Massa} e  do \textbf{Chapra de Métodos Numéricos para Engenharia} }
+\section{Fundamentação Teórica}
+\subsection{ Equação Governante}
+\hspace*{0.5cm}{ \large Ao analisarmos o contexto do problema apresentado, percebe-se a necessidade da definição de uma equação governante em termos da distribibuição de temperatura ao longo do módulo, assim, considerando essa premissa, foi utilizado a \textbf{Equação Geral da Condução de Calor} que descreve de forma geral em termos do espaço e do tempo, com utilização do chamado Laplaciano, o campo de temperatura, partindo de uma análise infinitesimal, avaliada pela ótica da \textbf{1 Lei da termodinamica}, consistindo em um balanço energético, resultando na equação mostrada abaixo:}
+\\
+\begin{equation}
+    \rho c_{p}\frac{\partial T}{\partial t} = k\nabla^2 T +  \dot{q}
+\end{equation}
+\\
+\[
+\begin{aligned}
+\rho &\; \to \; \text{massa específica (kg/m³)} \\
+c_p &\; \to \; \text{calor específico à pressão constante (J/kg°C)} \\
+\nabla^2 T &\; \to \; \text{Laplaciano de Temperatura (°C)} \\
+k &\; \to \; \text{Condutividade Térmica (W/mK)} \\
+\dot{q} &\; \to \; \text{Geração de Energia Interna (W/m³)}
+\end{aligned}
+\]
+\\
+\hspace*{0.5cm}{ \large Quanto ao Termo Laplaciano, ele é composto por derivadas parciais de Segunda Ordem em relação a cada uma das direções no espaço, entretanto, no problema a ser em resolvido em questão será considerado a abordagem \textbf{2D Transiente}, conforme apresentado abaixo, sendo reescrito em termos da difusidade térmica, parâmetro este que surge para medir a rapidez de espalhamento ou propagação de um distúrbio, além da consideração de geração térmica constante e conhecido, na qual seus valores a depender da região especificada podem ser diferentes devido a presença de chips complementares ao principal na placa do microcontrolador:}
+\begin{equation}
+    \frac{\partial T}{\partial t} = \alpha(\frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial y^2}) + \frac{ \dot{q}}{ \rho c_{p}}
+\end{equation}
+\subsection{ Condições de Contorno}
+\hspace*{0.5cm}{ \large Em problemas vinculados a Transferência de Calor pode ser dividido em 3 tipos de condições de contorno (Incropera, 2019): }
+\\
+\hspace*{1 cm}{ \large 
+ \textbf{1. Condição de Contorno de Dirichlet:} Temperatura prescrita na superfície;
+ }
+\\
+\hspace*{1 cm}{ \large 
+ \textbf{2. Condição de Contorno de Neumann:} Fluxo de Calor prescrito na superfície;
+ }
+\\
+\hspace*{1 cm}{ \large 
+ \textbf{3. Condição de Contorno de Robin:} Fluxo de Calor por convecção prescrito na superfície;
+ }
+\\
+\hspace*{0.5cm}{ \large Dessa maneira, a partir da utilização de termistores para medição de temperatura na extremidade será utilizado a   \textbf{Condição de Contorno de Dirichlet}. Além disso, outro ponto a ser levado em consideração é a utilização da vista frontal como base para determinação desse campo de temperatura além da consideração de Temperatura Constante ao Longo de cada uma das 4 Extremidades.}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{C:/Users/mfand/Downloads/Modulo_.png}
+    \caption{Módulo ESP8266 Visão Frontal}
+\end{figure}
+\section{Método das Diferenças Finitas}
+\hspace*{0.5cm}{ \large O Método das Diferenças Finitas surge como alternativa em suma para busca das  temperaturas no interior do módulo dado as condições de contorno iniciais nas extremidades, ele parte da premissa de um conceito fundamental que é conhecido como discretização, que consiste na transformação de um malha contínua de infinito de pontos que descreveriam o campo de interesse associada a uma função exata que iria permitir encontrar o campo de temperatura em cada região do espaço e do tempo, em uma Malha finita de pontos, nas quais cada um deles são chamados de nós. Desse modo, para o desenvolvimento da equação base que irá servir para resolução do problema apresentado, primeiramente feita a discretização do espaço e posteriormente o tempo variando com as posições(x e y) fixas, devido associação as derivadas parciais em relação a cada uma dessas variáveis. }
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{C:/Users/mfand/Downloads/Desenho Autocad Nó de Calculo.png}
+\end{figure}
+\begin{center}
+    Figura 2: Nó de Cálculo feito no Autocad
+\end{center}
+\hspace*{0.5cm}{ \large A idea central do método é utilizar a Serié de Taylor Truncada no termo de 2° Ordem para determinação das derivadas Parciais  a partir dos nós correspondentes, usando como base nós "ficticios"  intermediários, conhecido como método implicito:}
+\begin{equation}
+\fcolorbox{red}{white}{%
+$\displaystyle
+T(x_i + \Delta x) = T(x_i)
++ \left.\frac{\partial T}{\partial x}\right|_{x} \!\Delta x
+$%
+}
++ \frac{1}{2!}\left.\frac{\partial^2 T}{\partial x^2}\right|_{x} \!\Delta x^2
++ \frac{1}{3!}\left.\frac{\partial^3 T}{\partial x^3}\right|_{x} \!\Delta x^3
++ \cdots
++ \frac{1}{n!}\left.\frac{\partial^n T}{\partial x^n}\right|_{x} \!\Delta x^n
+\end{equation}
+\\
+\hspace*{0.5cm}{ \large Também sendo escrito de forma simular aos outros eixos, e reescrevendo o termos da equação (3), temos as seguintes equações:  }
+\\
+\begin{equation}
+\frac{\partial^2 T}{\partial x^2}(x_i, y_j, t_k) \approx \frac{T(x_i - \Delta x, y_j, t_k) - 2T(x_i, y_j, t_k) + T(x_i + \Delta x, y_j, t_k)}{\Delta x^2}
+\end{equation}
+\\
+\begin{equation}
+\frac{\partial T}{\partial t}(x_i, y_j, t_k) \approx \frac{T(x_i, y_j, t_k + \Delta t) - T(x_i, y_j, t_k)}{\Delta t}
+\end{equation}
+\\
+\hspace*{0.5cm}{ \large Desse modo, aplicando as equações (4) e (5) em (2) :  }
+\begin{align}
+\frac{T(x_i, y_j,  t_k + \Delta t)}{\Delta t} = \frac{T(x_i, y_j, t_k)}{\Delta t} 
+&+ \alpha
+\Big[ 
+\frac{\big( T(x_{i+1}, y_j, t_k) - 2 T(x_i, y_j, t_k) + T(x_{i-1}, y_j, t_k) \big)}{\Delta x^2} \notag \\
+&\quad + 
+\frac{\big( T(x_i, y_{j+1}, t_k) - 2 T(x_i, y_j, t_k) + T(x_i, y_{j-1}, t_k) \big)}{\Delta y^2}
+\Big] + \frac{ \dot{q}}{ \rho c_{p}}
+\end{align}
+\hspace*{0.5cm}{ \large Entretanto, para desdensificação de termos, será feito algumas readaquações na equação (6), reescrevendo o termo de geração, utilizando a notação de índice de malha ou ponto de grade, além de realizar o isolamento do termo atual \(x_i, y_j, t_k\), onde a demonstração da definição dessas constantes é demonstrado no Anexo I:  }
+\[
+\begin{aligned}
+A &= \frac{ \dot{q}}{ \rho c_{p}} 
+\qquad
+B = 2\alpha\left( \frac{1}{ \Delta x^2 } + \frac{1}{ \Delta y^2 } \right) + \frac{1}{\Delta t}
+\qquad
+C =  - \alpha\left(\frac{1}{ \Delta x^2}\right)
+\end{aligned}
+\]\\
+\[
+D = - \alpha\left(\frac{1}{ \Delta y^2}\right)
+\]
+\begin{align}
+\fcolorbox{red}{white}{%
+$\displaystyle
+T_P^0 = \frac{B}{\Delta t}T_P^1 + T_P^0 \frac{C}{B}( T_E^1 + T_W^1 \big)+ \frac{D}{B}\big( T_N^1 + T_S^1 \big) + A
+$%
+}
+\end{align}
+\hspace*{0.5cm}{ \large Assim teremos para cada um dos nós analisados, equações que compõem um Sistema Linear na forma \(A\{x\} = b\), e a partir da implementação de um código computacional, será possível conhecer o campo de temperatura ao longo do módulo trabalhado.}\\
+\hspace*{0.5cm}{ \large Dessa maneira, cabe também a seleção de um método numérico condizente com a natureza intríseca da matriz de coeficientes, que dentro da conceituação definida pelo Chapra, considerada uma matriz espaça, pois possue um número significativo de elementos iguais a 0 e além disso também é considerada uma matriz diagonal, com seus elementos da matriz onde i=j sempre igual a 1.\\
+\hspace*{0.5cm}Tendo em vista os diferentes métodos possíveis, a príncpio foi realizado o teste com método de decompossição LU, porém foi notado custo computacional consideravelmente na ordem de \(O(n^3)\) conforme o número de pontos em x e y formados, diante disso, escolheu-se o método de Gauss-Seidel, sendo definido como um método iterativo na qual parte de um chute inicial e realiza sucessivas iterações até alcançar a convergência de acordo com uma relação proposta de erro versus tolerância, podendo ser observado tal comportamento na imagem abaixo com o teste de utilização de 50 nós. Desse modo também, para melhor ilustração do código desenvolvido como um todo,realizou-se um fluxograma das etapas ou procedimentos realizados}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{C:/Users/mfand/Downloads/Resultados Código.png}
+    \caption{Arquivo texto gerado}
+\end{figure}
+\hspace*{0.5cm} \large Diante disso, após validação gráfica por meio da utilização do software paraview, foi possível a obtenção do campo de temperatura do módulo desejado, conforme mostrado abaixo:
+\end{document}
