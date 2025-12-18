@@ -6,14 +6,12 @@
 ![Tools](https://img.shields.io/badge/Tools-Paraview%20%7C%20LaTeX%20%7C%20GTL-brightgreen)
 
 ## 1. Introdução e Justificativa
-Este projeto apresenta o desenvolvimento de um framework computacional autoral para resolver a **Equação Geral da Condução de Calor** aplicada ao microcontrolador ESP8266. A grande inovação reside na construção de um **Gêmeo Digital Geométrico**: a malha de cálculo não é uma grade genérica, mas sim uma binarização fiel do arquivo **GTL (Gerber Top Layer)**. 
-
-Esta abordagem permite mapear com precisão nanométrica onde existe cobre (dissipador natural) e onde existe substrato FR4 (isolante), permitindo prever pontos de estrangulamento térmico em projetos de automação residencial e validar sistemas de resfriamento aletados.
+Este projeto apresenta o desenvolvimento de um código computacional autoral para solução a **Equação Geral da Condução de Calor** aplicada ao microcontrolador ESP8266. O Método Numérico base utilizado foi o **Método das Diferenças Finitas** em um contexto 2D Transiente. Por fim sua implementação se justifativa primordialmente para proposição futura de um **Sistema Aletado** levando em consideração o campo de temperatura no microcontrolador.
 
 ## 2. Fundamentação Teórica e Metodologia
 
 ### 2.1 Equação Governante
-O fenômeno de transporte térmico é modelado pela equação de condução 2D transiente com geração de calor interna e propriedades heterogêneas:
+O fenômeno de transporte térmico é modelado pela equação geral da condução de calor com geração de calor interna e propriedades heterogêneas:
 
 $$\rho(x,y) c_p(x,y) \frac{\partial T}{\partial t} = \nabla \cdot (k(x,y) \nabla T) + \dot{q}$$
 
@@ -85,3 +83,4 @@ g++ -O3 -o simulacao_termica src/main.cpp
 
 # 3. Executar a simulação:
 ./simulacao_termica
+
