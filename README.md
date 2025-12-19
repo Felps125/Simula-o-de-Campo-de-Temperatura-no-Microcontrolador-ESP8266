@@ -9,13 +9,33 @@
 Este projeto apresenta o desenvolvimento de um código computacional autoral para solução a **Equação Geral da Condução de Calor** aplicada ao microcontrolador ESP8266. O Método Numérico base utilizado foi o **Método das Diferenças Finitas** em um contexto 2D Transiente. Por fim sua implementação se justifativa primordialmente para proposição futura de um **Sistema Aletado** levando em consideração o campo de temperatura no microcontrolador.
 
 ## 2. Fundamentação Teórica e Metodologia
+A métodologia, em suma, consistiu nos seguintes procedimentos 
+
+1. **Definição da Equação Governante**
+   * Formulação matemática do fenômeno físico.
+   * Definição da equação de difusão de calor (ex: Fourier).
+
+2. **Definição do Método Numérico e Condições de Contorno**
+   * Escolha do método de discretização (Diferenças Finitas, Volumes Finitos, etc.).
+   * Especificação das condições de contorno (Dirichlet, Neumann ou Robin).
+
+3. **Desenvolvimento do Código Base (Parede Plana)**
+   * Implementação do algoritmo inicial para geometria de parede plana.
+   * Estruturação modular para facilitar futuras adaptações a outras geometrias.
+
+4. **Validações e Testes de Implementação**
+   * Testes das condições pré-estabelecidas no código base.
+   * Validação final gráfica com utilização de software de pós processamento.
+
+5. **Resultados e Discussões**
+   * Análise dos dados gerados.
 
 ### 2.1 Equação Governante
 O fenômeno de transporte térmico é modelado pela equação geral da condução de calor com geração de calor interna e propriedades heterogêneas:
 
 $$\rho(x,y) c_p(x,y) \frac{\partial T}{\partial t} = \nabla \cdot (k(x,y) \nabla T) + \dot{q}$$
 
-Onde $k(x,y)$ é definido pela matriz de binarização geométrica, assumindo $k_{cu} \approx 400 \, W/m \cdot K$ para trilhas e $k_{fr4} \approx 0.25 \, W/m \cdot K$ para o substrato.
+Onde $k(x,y)$ é definido pela matriz de binarização geométrica, assumindo $k_{cu} \approx 400 \, W/m \cdot K$ para trilhas e $k_{fr4} \approx 0.25 \, W/m \cdot K$ para o substrato. Após algumas readequações na equação original, desdensificando nomenclatura tem-se
 
 ### 2.2 Binarização Geométrica (Python/GTL)
 A discretização do domínio físico utiliza a técnica de **Hit-Test Vetorial** via API `pcbnew`. O script Python interroga a geometria original do KiCad para gerar uma malha estruturada:
@@ -23,7 +43,7 @@ A discretização do domínio físico utiliza a técnica de **Hit-Test Vetorial*
 * **Domínio Isolante (1):** Espaço vazio ou regiões de dielétrico.
 
 ### 2.3 Discretização Numérica (MDF Aplicado)
-Utilizou-se o **Método das Diferenças Finitas (MDF)** para transformar as equações diferenciais parciais em um sistema de equações algébricas lineares. 
+Utilizou-se como norteador o **Método das Diferenças Finitas (MDF)** para transformar as equações diferenciais parciais em um sistema de equações algébricas lineares. 
 
 #### 2.3.1 Tratamento de Interfaces (Média Harmônica)
 Dada a natureza bimodal da malha (Cobre vs FR4), a condutividade nas interfaces entre nós é calculada via **Média Harmônica**, garantindo a continuidade do fluxo de calor na fronteira de materiais:
@@ -83,4 +103,5 @@ g++ -O3 -o simulacao_termica src/main.cpp
 
 # 3. Executar a simulação:
 ./simulacao_termica
+
 
