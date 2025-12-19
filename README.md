@@ -56,7 +56,7 @@ Para garantir estabilidade numérica independente do passo de tempo ($\Delta t$)
 $$\frac{T_{i,j}^{n+1} - T_{i,j}^n}{\Delta t} = \alpha_{i,j} \left[ \frac{T_{i+1,j}^{n+1} - 2T_{i,j}^{n+1} + T_{i-1,j}^{n+1}}{\Delta x^2} + \frac{T_{i,j+1}^{n+1} - 2T_{i,j}^{n+1} + T_{i,j-1}^{n+1}}{\Delta y^2} \right] + \frac{\dot{q}}{\rho c_p}$$
 
 #### 2.3.3 Solver Iterativo (Gauss-Seidel)
-O sistema linear resultante é resolvido iterativamente. O algoritmo de **Gauss-Seidel** percorre a malha atualizando os valores de temperatura até que o resíduo máximo seja inferior à tolerância estipulada ($\epsilon < 10^{-6}$):
+O sistema linear resultante é resolvido iterativamente. O algoritmo de **Gauss-Seidel** percorre a malha atualizando os valores de temperatura até que o resíduo máximo seja inferior à tolerância estipulada ($\epsilon < 10^{-6}$), sendo a escolha desse método vinculada a característica espessa apresentada pela matriz, na qual comparada a aplicação de outros métodos, aumentou-se consideravlmente o custo computacional:
 
 $$T_{i,j}^{k+1} = \frac{1}{1+2\beta_x+2\beta_y} \left( T_{i,j}^n + \beta_x(T_{i+1,j}^k + T_{i-1,j}^{k+1}) + \beta_y(T_{i,j+1}^k + T_{i,j-1}^{k+1}) + S_{i,j} \Delta t \right)$$
 
@@ -103,5 +103,6 @@ g++ -O3 -o simulacao_termica src/main.cpp
 
 # 3. Executar a simulação:
 ./simulacao_termica
+
 
 
