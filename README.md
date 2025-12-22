@@ -1,9 +1,8 @@
 # Simulação de Campo de Temperatura no Microncontrolador ESP8266
 
 ![Status](https://img.shields.io/badge/Status-Em%20Andamento-yellow)
-![Platform](https://img.shields.io/badge/Platform-ESP8266%20%7C%20KiCad-blue)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B%20%7C%20Python-orange)
-![Tools](https://img.shields.io/badge/Tools-Paraview%20%7C%20LaTeX%20%7C%20GTL-brightgreen)
+![Tools](https://img.shields.io/badge/Tools-Paraview%20%7C%20KiCad%20%7C%20GTL-brightgreen)
 
 ## 1. Introdução e Justificativa
 Este projeto apresenta o desenvolvimento de um código computacional autoral para solução a **Equação Geral da Condução de Calor** aplicada ao microcontrolador ESP8266. O Método Numérico base utilizado foi o **Método das Diferenças Finitas** em um contexto 2D Transiente. Por fim sua implementação se justifativa primordialmente para proposição futura de um **Sistema Aletado** levando em consideração o campo de temperatura no microcontrolador.
@@ -38,7 +37,7 @@ $$\rho(x,y) c_p(x,y) \frac{\partial T}{\partial t} = \nabla \cdot (k(x,y) \nabla
 Onde $k(x,y)$ é definido pela matriz de binarização geométrica, assumindo $k_{cu} \approx 400 \, W/m \cdot K$ para trilhas e $k_{fr4} \approx 0.25 \, W/m \cdot K$ para o substrato. Após algumas readequações na equação original, desdensificando nomenclatura tem-se
 
 ### 2.2 Binarização Geométrica (Python/GTL)
-A discretização do domínio físico utiliza a técnica de **Hit-Test Vetorial** via API `pcbnew`. O script Python interroga a geometria original do KiCad para gerar uma malha estruturada:
+A discretização do domínio físico envolveu além da formação da malha alguns ajustes e adaptações em termos geométricos, visando atender as especificidades do microcontrolador em questão. Uma delas foi a determinação das regiões que possuem materiais diferentes por meio da técnica de **Hit-Test Vetorial** via API `pcbnew', na qual o script Python realiza um mapeamento na geometria original(arquivo no formato GTL) no KICAD para gerar uma matriz binarizada de acordo com o material:
 * **Domínio Condutor (0):** Identificado via colisão de vetores com polígonos da camada `F.Cu`.
 * **Domínio Isolante (1):** Espaço vazio ou regiões de dielétrico.
 
@@ -103,6 +102,7 @@ g++ -O3 -o simulacao_termica src/main.cpp
 
 # 3. Executar a simulação:
 ./simulacao_termica
+
 
 
 
