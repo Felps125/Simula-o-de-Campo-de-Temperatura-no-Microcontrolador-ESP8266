@@ -1,0 +1,200 @@
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <string>
+#include <cmath>
+#include <algorithm>
+#include <fstream>
+#include <windows.h>
+
+using namespace std;
+
+// ------------------ DATA ATUAL ------------------
+string hoje() {
+    time_t t = time(nullptr);
+    tm* now = localtime(&t);
+    char buffer[11];
+    strftime(buffer, sizeof(buffer), "%d/%m/%Y", now);
+    return buffer;
+}
+
+// ------------------ MAIN COMPLETO ------------------
+int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
+    cout << fixed << setprecision(6);
+
+    cout << "================================================================================\n";
+    cout << "*                                                                              *\n";
+    cout << "*                   CURSO DO CÁLCULO NUMÉRICO A SIMULAÇÃO                      *\n";
+    cout << "*                                                                              *\n";
+    cout << "================================================================================\n";
+    cout << "* Programa: Determinação de Campo de Temperatura no Microcontrolador ESP8266   *\n";
+    cout << "* Equação Governante: Equação Geral da Condução de Calor(2D Transiente)        *\n";
+    cout << "* Métodos Numéricos Utilizados: - Método das Diferenças Finitas(MDF);           *\n";
+    cout << "*                               - Gauss Seidel;                                 *\n";
+    cout << "* Ferramenta de Pós Processamento: Paraview 2D                                 *\n";
+    cout << "* Repositório:                                                                 *\n";
+    cout << "* Última Atualização: 13/12/2025                                               *\n";
+    cout << "* Autor: Felipe Antunes Alves                                                  *\n";
+    cout << "*                                                                              *\n";
+    cout << "*        https://github.com/l2c-dev/manual-calculo-numerico.git                *\n";
+    cout << "================================================================================\n\n";
+
+    // Glossário de Variáveis
+    // i, j -> Número de pontos em x e y respectivamente
+    // i_2, j_2, j_3 -> Variáveis de iteração
+    // deltax, deltay, deltat -> Variações no espaço(x e y) e no tempo
+    // xsup, xinf, ysup, yinf -> Limites inferior e superior em x e y para criação da malha
+    // alpha -> Difusividade térmica
+    // CT1, CT2, CT3 -> Constantes equivalentes ao A, B e o C definidas no relatório
+    // *T -> Vetor de campo de temperatura
+    // *x_out, *y_out -> Vetores de saída(output) de dados para o arquivo de texto
+    // *T_old -> Vetor campo de temperatura antigo para comparação dentro do método de Gauss-Seidel
+
+    int i, j, i_2, j_2, j_3, k;
+    double xsup, xinf, ysup, yinf;
+    double deltax, deltay, deltat, alpha, CT1, CT2, CT3;
+
+    // Criação da Malha
+    cout << "Informe o número de pontos em x: ";
+    cin >> i;
+    cout << "Informe o número de pontos em y: ";
+    cin >> j;
+
+    int size = i * j; // Definição do Tamanho da Matriz
+
+    // VETORES
+    double *T = new double[size];
+    double *T_old = new double[size];
+    double *x_out = new double[i];
+    double *y_out = new double[j];
+
+    cout << "Informe o limite inferior em x: ";
+    cin >> xinf;
+    cout << "Informe o limite superior em x: ";
+    cin >> xsup;
+    cout << "Informe o limite inferior em y: ";
+    cin >> yinf;
+    cout << "Informe o limite superior em y: ";
+    cin >> ysup;
+
+    deltax = (xsup - xinf) / (i - 1);
+    deltay = (ysup - yinf) / (j - 1);
+
+    x_out[0] = xinf;
+    for (i_2 = 1; i_2 < i; i_2++)
+        x_out[i_2] = x_out[i_2 - 1] + deltax;
+
+    y_out[0] = yinf;
+    for (j_2 = 1; j_2 < j; j_2++)
+        y_out[j_2] = y_out[j_2 - 1] + deltay;
+
+    // CONSTANTES
+    deltat = 0.1;
+    alpha  = 1e-4;
+
+    CT1 = (1.0 / deltat) +
+          2.0 * alpha * (1.0 / (deltax * deltax) + 1.0 / (deltay * deltay));
+    CT2 = alpha / (deltax * deltax);
+    CT3 = alpha / (deltay * deltay);
+
+    // INICIALIZAÇÃO
+    fill_n(T, size, 25.0);
+
+    // CONDIÇÕES DE CONTORNO
+    double T_inf = 12.0, T_sup = 100, T_esq = 50.0, T_dir = 40.0;
+
+    // borda superior
+    for (j_2 = 0; j_2 < j; j_2++)
+        T[j_2] = T_inf;
+
+    // borda inferior
+    for (j_2 = 0; j_2 < j; j_2++) {
+        j_3 = (i - 1) * j + j_2;
+        T[j_3] = T_sup;
+    }
+
+    // borda esquerda e direita
+    for (i_2 = 1; i_2 < i - 1; i_2++) {
+        T[i_2 * j] = T_esq;
+        T[i_2 * j + j - 1] = T_dir;
+    }
+
+    // PARÂMETROS DO LIEBMANN
+    double tol = 1e-6;
+    int iter_max = 5000;
+
+    int N_passos = 1000;
+
+    cout << "\nINICIANDO SIMULAÇÃO...\n";
+
+    // LOOP TRANSIENTE
+    for (int passo = 1; passo <= N_passos; passo++) {
+
+        copy(T, T + size, T_old);
+
+        double erro = 1.0;
+        int iter = 0;
+
+        while (erro > tol && iter < iter_max) {
+            erro = 0.0;
+
+            for (i_2 = 1; i_2 < i - 1; i_2++) {
+                for (j_2 = 1; j_2 < j - 1; j_2++) {
+
+                    j_3 = i_2 * j + j_2;
+                    double Told = T[j_3];
+
+                    T[j_3] =
+                        ( T_old[j_3] / deltat
+                        + CT3 * (T[(i_2 + 1) * j + j_2] + T[(i_2 - 1) * j + j_2])
+                        + CT2 * (T[i_2 * j + (j_2 + 1)] + T[i_2 * j + (j_2 - 1)]) )
+                        / CT1;
+
+                    erro = max(erro, fabs(T[j_3] - Told));
+                }
+            }
+            iter++;
+        }
+    }
+
+    // SAÍDA EM CSV (compatível com ParaView, Python, MATLAB, Excel)
+    ofstream arquivo_saida("laplace_transiente.csv");
+
+    if (arquivo_saida.is_open()) {
+
+        // Precisão numérica
+        arquivo_saida << fixed << setprecision(3);
+
+        // Cabeçalho CSV
+        arquivo_saida << "X,Y,T\n";
+
+        for (i_2 = 0; i_2 < i; i_2++) {
+            for (j_2 = 0; j_2 < j; j_2++) {
+
+                j_3 = i_2 * j + j_2;
+
+                arquivo_saida
+                    << x_out[i_2] << ","
+                    << y_out[j_2] << ","
+                    << T[j_3]     << "\n";
+            }
+        }
+
+        arquivo_saida.close();
+        cout << "\nSIMULAÇÃO CONCLUÍDA COM SUCESSO.\n";
+
+    } else {
+        cerr << "Erro ao abrir arquivo.\n";
+    }
+
+
+    delete[] T;
+    delete[] T_old;
+    delete[] x_out;
+    delete[] y_out;
+
+    return 0;
+}
